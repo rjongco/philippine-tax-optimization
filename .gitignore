@@ -1,0 +1,8 @@
+.venv
+scenario.json
+COMPUTATIONS.xlsx
+.claude
+docs
+node_modules
+__pycache__
+.pytest_cache
