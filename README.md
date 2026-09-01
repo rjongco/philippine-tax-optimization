@@ -1,4 +1,4 @@
-# Payroll Structure App
+# Philippine Tax Optimization App
 
 Implements the model documented in [`PAYROLL_MODEL.md`](../PAYROLL_MODEL.md).
 Design notes: [`docs/superpowers/specs/2026-08-05-payroll-app-design.md`](../docs/superpowers/specs/2026-08-05-payroll-app-design.md).
