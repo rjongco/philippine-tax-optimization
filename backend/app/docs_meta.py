@@ -223,10 +223,10 @@ CONCEPT_DOCS: List[ConceptDoc] = [
     ),
     ConceptDoc(
         key="ceiling",
-        title="Why every restructured employee lands on PHP 141,600",
+        title="Why every restructured employee lands on PHP 166,799.88",
         body=(
             "Exempt income is twelve months of de minimis plus whatever fits in the "
-            "90,000 bucket: 12 x 4,300 + 90,000 = 141,600. That is the mathematical "
+            "90,000 bucket: 12 x 6,399.99 + 90,000 = 166,799.88. That is the mathematical "
             "maximum under Philippine law without paying additional money. It holds "
             "whether the bucket lands exactly on the ceiling or overshoots — an "
             "overshoot just becomes taxable spill."

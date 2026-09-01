@@ -26,8 +26,8 @@ def test_health():
 def test_scenario_seeds_from_defaults_on_first_read():
     body = client.get("/api/scenario").json()
     assert len(body["employees"]) == 16
-    assert len(body["deminimis_items"]) == 6
-    assert body["deminimis_monthly"] == 4300.0
+    assert len(body["deminimis_items"]) == 7
+    assert body["deminimis_monthly"] == 6399.99
     assert body["parameters"]["cash_anchor"] == 5300.0
 
 
@@ -37,11 +37,11 @@ def test_compute_reproduces_the_workbook_total():
     body = client.post("/api/compute", json=payload).json()
 
     assert len(body["breakdowns"]) == 16
-    assert body["totals"]["tax_saved_annual"] == pytest.approx(70465.10, abs=0.01)
+    assert body["totals"]["tax_saved_annual"] == pytest.approx(119507.00, abs=0.01)
     assert body["warnings"] == []
 
     avila = next(b for b in body["breakdowns"] if b["employee_id"] == "avila")
-    assert avila["total_exempt_annual"] == pytest.approx(141600.00, abs=0.01)
+    assert avila["total_exempt_annual"] == pytest.approx(166799.88, abs=0.01)
     assert avila["invariants"]["all_ok"] is True
 
 
@@ -51,7 +51,9 @@ def test_saturated_employee_is_flagged_and_explained():
     garcia = next(b for b in body["breakdowns"] if b["employee_id"] == "garcia")
 
     assert garcia["saturated"] is True
-    assert garcia["tax_saved_annual"] == 0.0
+    # Saturated, but no longer a dead end: the larger RR 29-2025 de minimis comes
+    # out of taxable basic, which his spill does not touch.
+    assert garcia["tax_saved_annual"] > 0.0
     assert any("Saturated" in n for n in garcia["notes"])
 
 
@@ -62,7 +64,10 @@ def test_non_restructured_employees_report_held_harmless():
     for b in body["breakdowns"]:
         if not b["restructure"]:
             assert b["invariants"]["held_harmless"] is True, b["name"]
-            assert b["tax_saved_annual"] == 0.0, b["name"]
+            # Never worse off. Better off is allowed — the hold-harmless clamp
+            # binds now that de minimis exceeds the cash anchor.
+            assert b["tax_saved_annual"] >= 0.0, b["name"]
+            assert b["incentive_monthly"] >= 0.0, b["name"]
 
 
 def test_editing_a_salary_recomputes():
@@ -73,7 +78,7 @@ def test_editing_a_salary_recomputes():
     body = client.post("/api/compute", json=payload).json()
     avila = next(b for b in body["breakdowns"] if b["employee_id"] == "avila")
     assert avila["signed_gross_monthly"] == 60000.0
-    assert avila["total_exempt_annual"] == pytest.approx(141600.00, abs=0.01)
+    assert avila["total_exempt_annual"] == pytest.approx(166799.88, abs=0.01)
 
 
 def test_put_scenario_round_trips_without_losing_precision():
@@ -82,15 +87,15 @@ def test_put_scenario_round_trips_without_losing_precision():
     client.put("/api/scenario", json=payload)
 
     stored = json.loads(SCENARIO_PATH.read_text(encoding="utf-8"))
-    medicine = next(
-        i for i in stored["deminimis_items"] if i["key"] == "medicine"
+    uniform = next(
+        i for i in stored["deminimis_items"] if i["key"] == "uniform"
     )
-    # stored as a string, so 833.33 survives rather than becoming 833.3299999...
-    assert medicine["granted_monthly"] == "833.33"
-    assert Decimal(medicine["granted_monthly"]) == Decimal("833.33")
+    # stored as a string, so 666.66 survives rather than becoming 666.6599999...
+    assert uniform["granted_monthly"] == "666.66"
+    assert Decimal(uniform["granted_monthly"]) == Decimal("666.66")
 
     reread = client.get("/api/scenario").json()
-    assert reread["deminimis_monthly"] == 4300.0
+    assert reread["deminimis_monthly"] == 6399.99
 
 
 def test_over_cap_deminimis_produces_a_warning():

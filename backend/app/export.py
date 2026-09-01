@@ -379,7 +379,7 @@ def _write_register(ws: Worksheet, scenario: Scenario, refs: Dict) -> None:
         _money(ws.cell(row=r, column=5), f"={dm}", CROSSREF_GREEN)
         _money(
             ws.cell(row=r, column=6),
-            f'=IF({RESTR}{r}="No",{anchor}-{DEMINIMIS}{r},'
+            f'=IF({RESTR}{r}="No",MAX(0,{anchor}-{DEMINIMIS}{r}),'
             f"MIN(MAX({GROSS}{r}-{DEMINIMIS}{r}-{THIRTEENTH}{r},"
             f"({ceiling}-{THIRTEENTH}{r})/12,0),"
             f"MAX(0,{GROSS}{r}-{DEMINIMIS}{r}-{min_basic})))",
@@ -455,7 +455,7 @@ def _write_register(ws: Worksheet, scenario: Scenario, refs: Dict) -> None:
         "Layout follows the Sheet8 payroll register of COMPUTATIONS.xlsx. Deductions are negatives, and NET PAY = NON TAXABLE + NET TAXABLE INCOME + WITHHOLDING, as in that sheet's example rows.",
         "PRODUCTIVITY INCENTIVE is an added column. The model has three pay components where Sheet8 had two, and the incentive cannot be folded into de minimis: they are different exemption tiers under different rules. NON TAXABLE is de minimis plus the incentive.",
         "ABSENT/UNDERTIME/LATE and OVERTIME are blank inputs for the payroll run. Enter absences as negatives. Both flow into GROSS TAXABLE, and absences also reduce the PhilHealth base.",
-        'The incentive column is the optimizer. Employees marked "No" in RESTRUCTURED? receive cash anchor minus de minimis, which pins their taxable basic to the old structure so a change to the de minimis schedule cannot push them into tax.',
+        'The incentive column is the optimizer. Employees marked "No" in RESTRUCTURED? receive cash anchor minus de minimis, clamped at zero, so a change to the de minimis schedule cannot push them into tax. Under RR 29-2025 de minimis exceeds the cash anchor, so the clamp binds and these employees land below the old baseline - better off, never worse.',
         "The productivity incentive requires a threshold that could genuinely fail and a monthly determination recorded per employee. A fixed amount paid unconditionally is regular compensation regardless of the column header.",
         "SSS is looked up on gross less de minimis. PhilHealth is on basic salary only, correctly excluding de minimis and the incentive.",
     ]

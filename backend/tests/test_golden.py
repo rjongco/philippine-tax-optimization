@@ -64,7 +64,8 @@ def test_seed_matches_workbook_headcount(result):
 
 
 def test_deminimis_total(result):
-    assert result.deminimis_monthly == Decimal("4300.00")
+    """RR 29-2025 ceilings. Not 6,400.00 — see default_deminimis for the rounding."""
+    assert result.deminimis_monthly == Decimal("6399.99")
 
 
 @pytest.mark.parametrize(
@@ -100,15 +101,25 @@ def test_total_gross_and_basic(result):
 
 
 def test_every_restructured_employee_reaches_the_ceiling(by_id):
-    """PAYROLL_MODEL.md section 7: exempt = 12D + MIN(bucket, C) = 141,600."""
+    """PAYROLL_MODEL.md section 7: exempt = 12D + MIN(bucket, C).
+
+    Under RR 29-2025 that is 76,799.88 + 90,000 = 166,799.88.
+    """
     for b in by_id.values():
         if b.restructure and not b.saturated:
-            assert b.total_exempt_annual == Decimal("141600.00"), b.name
+            assert b.total_exempt_annual == Decimal("166799.88"), b.name
 
 
 def test_garcia_is_saturated_and_explained(by_id):
+    """Still saturated, but no longer a dead end.
+
+    His 13th-month payment alone overshoots the ceiling, so his bucket spills
+    however the incentive is set. Under the old schedule that left him at exactly
+    zero saving. The larger RR 29-2025 de minimis comes out of taxable basic
+    directly, which the spill does not touch — so he now saves real money.
+    """
     garcia = by_id["garcia"]
     assert garcia.saturated
     assert garcia.spill_annual > 0
-    assert garcia.tax_saved_annual == Decimal("0")
+    assert garcia.tax_saved_annual > Decimal("0")
     assert any("Saturated" in n for n in garcia.notes)

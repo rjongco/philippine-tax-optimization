@@ -42,9 +42,16 @@ def test_thirteenth_month_payment_covers_the_statutory_amount(result):
 
 
 def test_non_restructured_employees_are_held_harmless(result):
+    """Never worse off. Better off is allowed and, under RR 29-2025, expected.
+
+    The rule is `incentive = cash_anchor - de_minimis`, clamped at zero. Now that
+    de minimis (6,399.99) exceeds the anchor (5,300) the clamp binds, so these
+    employees land below the old baseline rather than exactly on it.
+    """
     for b in result.breakdowns:
         if not b.restructure:
-            assert b.tax_saved_annual == ZERO, b.name
+            assert b.tax_saved_annual >= ZERO, b.name
+            assert b.incentive_monthly >= ZERO, b.name
             assert b.invariants.held_harmless is True, b.name
 
 
@@ -79,10 +86,12 @@ def test_hold_harmless_survives_a_deminimis_change(drop):
 
     for b in changed.breakdowns:
         if not b.restructure:
-            assert b.tax_saved_annual == ZERO, (
-                f"{b.name} moved to {b.tax_saved_annual} after de minimis fell by {drop}"
+            assert b.tax_saved_annual >= ZERO, (
+                f"{b.name} lost {b.tax_saved_annual} after de minimis fell by {drop}"
             )
-            assert b.basic_monthly == b.baseline_basic_monthly, b.name
+            assert b.incentive_monthly >= ZERO, b.name
+            # Never above the baseline: taxable basic may fall, never rise.
+            assert b.basic_monthly <= b.baseline_basic_monthly, b.name
 
 
 def test_hold_harmless_holds_when_deminimis_is_zero():

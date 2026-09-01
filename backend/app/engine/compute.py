@@ -35,10 +35,19 @@ def _incentive(
 ) -> Decimal:
     """Column G — the optimizer.
 
-    Non-restructured employees get `cash_anchor - deminimis`, which forces
-    `deminimis + incentive = cash_anchor` and therefore pins basic salary to
-    `gross - cash_anchor`, exactly the baseline. That is the hold-harmless rule:
-    changing the de minimis schedule can never push these employees into tax.
+    Non-restructured employees get `cash_anchor - deminimis`, clamped at zero,
+    which forces `deminimis + incentive = cash_anchor` and therefore pins basic
+    salary to `gross - cash_anchor`, exactly the baseline. That is the
+    hold-harmless rule: changing the de minimis schedule can never push these
+    employees into tax.
+
+    The clamp matters once de minimis exceeds the cash anchor, which it does
+    under RR 29-2025 (6,399.99 against an anchor of 5,300). Unclamped the branch
+    returns a negative incentive — arithmetically it still pins basic to the
+    baseline, but a negative pay line is nonsense and exports as a negative
+    column on the payroll register. Clamped, these employees land *below* the old
+    baseline, so they are better off rather than merely unharmed, and their tax
+    saving becomes >= 0 rather than exactly 0.
 
     Restructured employees get the largest incentive satisfying all three
     constraints in PAYROLL_MODEL.md section 7:
@@ -51,7 +60,7 @@ def _incentive(
     (ii) binds for high earners, (i) for everyone else, (iii) is a safety stop.
     """
     if not restructure:
-        return p.cash_anchor - deminimis
+        return max(ZERO, p.cash_anchor - deminimis)
 
     lower = max(
         gross - deminimis - thirteenth_payment,          # (ii)
@@ -117,7 +126,10 @@ def compute_employee(
         structure_balances=(deminimis + incentive + basic == gross),
         minimum_wage_ok=(daily_rate >= p.min_wage_daily),
         thirteenth_month_covered=(thirteenth_payment >= basic),
-        held_harmless=None if employee.restructure else (tax_saved == ZERO),
+        # ">= 0", not "== 0": once de minimis exceeds the cash anchor the clamped
+        # branch leaves these employees below the old baseline, so a positive
+        # saving here is correct, not a bug.
+        held_harmless=None if employee.restructure else (tax_saved >= ZERO),
     )
 
     notes: List[str] = []

@@ -13,72 +13,100 @@ def default_parameters() -> Parameters:
 
 
 def default_deminimis() -> list[DeMinimisItem]:
-    """Tier 1 schedule, all six items at statutory cap. Total 4,300.00/mo."""
+    """Tier 1 schedule at RR 29-2025 ceilings. Seven items, total 6,399.99/mo.
+
+    RR 29-2025 was issued 22 December 2025 and took effect 6 January 2026,
+    raising every ceiling on the list and — materially for this model — allowing
+    employee achievement awards to be paid in CASH for the first time.
+
+    Monthly figures round DOWN where an annual cap does not divide evenly
+    (uniform 8,000/12, medical dependents 4,000/12), so no line sits above its
+    statutory ceiling. That is why the total is 6,399.99 rather than a round
+    6,400.00: granting above a cap is strictly worse than not granting at all,
+    because the excess drops into the already-full 90,000 bucket.
+    """
     return [
         DeMinimisItem(
             key="rice",
             label="Rice subsidy",
-            statutory_cap_monthly=dec("2000"),
-            granted_monthly=dec("2000"),
-            authority="RR 11-2018 — PHP 2,000/mo",
+            statutory_cap_monthly=dec("2500"),
+            granted_monthly=dec("2500"),
+            authority="RR 29-2025 — PHP 2,500/mo (was 2,000)",
             note="Cash is expressly allowed for this item. Monthly cap, so it splits "
             "cleanly across pay cutoffs.",
         ),
         DeMinimisItem(
             key="uniform",
             label="Uniform and clothing allowance",
-            statutory_cap_monthly=dec("500"),
-            granted_monthly=dec("500"),
-            authority="RR 5-2011 — PHP 6,000/yr",
-            note="Annual cap amortised monthly. Staying under the annual total keeps "
-            "this within Tier 1.",
+            statutory_cap_monthly=dec("666.66"),
+            granted_monthly=dec("666.66"),
+            authority="RR 29-2025 — PHP 8,000/yr (was 6,000, then 7,000 under RR 4-2025)",
+            note="Annual cap amortised monthly, rounded down so the annual total "
+            "(7,999.92) stays under the 8,000 ceiling. This line moved twice in one "
+            "year — check it against the current regulation before relying on it.",
         ),
         DeMinimisItem(
             key="laundry",
             label="Laundry allowance",
-            statutory_cap_monthly=dec("300"),
-            granted_monthly=dec("300"),
-            authority="RR 5-2011 — PHP 300/mo",
+            statutory_cap_monthly=dec("400"),
+            granted_monthly=dec("400"),
+            authority="RR 29-2025 — PHP 400/mo (was 300)",
             note="Monthly cap. Splits cleanly.",
         ),
         DeMinimisItem(
             key="medical_dependents",
             label="Medical cash allowance — dependents",
-            statutory_cap_monthly=dec("250"),
-            granted_monthly=dec("250"),
-            authority="RR 5-2011 — PHP 1,500 per semester, or PHP 250/mo",
+            statutory_cap_monthly=dec("333.33"),
+            granted_monthly=dec("333.33"),
+            authority="RR 29-2025 — PHP 2,000 per semester, or PHP 333/mo (was 1,500)",
             note="The regulation states the monthly equivalent itself, and says "
             "'cash' expressly. The strongest item on the schedule.",
         ),
         DeMinimisItem(
             key="medicine",
             label="Medicine / maintenance assistance",
-            statutory_cap_monthly=dec("833.33"),
-            granted_monthly=dec("833.33"),
-            authority="RR 5-2011 — actual medical assistance, PHP 10,000/yr",
+            statutory_cap_monthly=dec("1000"),
+            granted_monthly=dec("1000"),
+            authority="RR 29-2025 — actual medical assistance, PHP 12,000/yr (was 10,000)",
             note="Paid as scheduled monthly cash, which is defensible ONLY with annual "
             "substantiation on file (receipts or a signed declaration covering the "
-            "PHP 10,000). The regulation's word is 'actual' — an evidentiary test, not "
+            "PHP 12,000). The regulation's word is 'actual' — an evidentiary test, not "
             "a timing test, so payment need not match expense timing. Without "
             "substantiation this falls out of Tier 1 into the 90,000 ceiling, which is "
             "already full, and becomes fully taxable.",
             unconditional=False,
         ),
         DeMinimisItem(
+            key="achievement_award",
+            label="Employee achievement award",
+            statutory_cap_monthly=dec("1000"),
+            granted_monthly=dec("1000"),
+            authority="RR 29-2025 — PHP 12,000/yr, cash now permitted (was 10,000, non-cash only)",
+            note="NEW under RR 29-2025, and the single biggest change for this model. "
+            "The regulation now reads 'in any form, whether in cash, gift certificate, "
+            "or any tangible personal property'. Cash was previously disqualifying, "
+            "which is why this item was excluded before. PRECONDITION: it must be paid "
+            "'under an established written plan which does not discriminate in favor of "
+            "highly paid employees'. That plan must exist before this line is paid — "
+            "without it the item is not a de minimis benefit at all. Note the conditions "
+            "are weaker than the 90,000 bucket demands: no requirement that it be "
+            "capable of failing.",
+            unconditional=False,
+        ),
+        DeMinimisItem(
             key="christmas",
             label="Christmas gift",
-            statutory_cap_monthly=dec("416.67"),
-            granted_monthly=dec("416.67"),
-            authority="RR 5-2011 — gifts given during Christmas, PHP 5,000/yr",
-            note="WEAKEST ITEM ON THE SCHEDULE — retained by client decision. Two "
-            "defects, and unlike the medicine item no substantiation cures either: "
-            "(1) a gift is gratuitous by definition, and this one is carved out of "
-            "contracted gross, so the employee was entitled to the money regardless; "
-            "(2) the regulation says gifts given during CHRISTMAS — an occasion test "
-            "that monthly release does not meet. Exposure if reclassified is roughly "
-            "PHP 10,800/yr across the group. The compliant alternative is a single "
-            "PHP 5,000 payment on the existing December 13th-month date, costing "
-            "PHP 416.67/mo in monthly cash.",
+            statutory_cap_monthly=dec("500"),
+            granted_monthly=dec("500"),
+            authority="RR 29-2025 — gifts during Christmas and major anniversaries, PHP 6,000/yr (was 5,000)",
+            note="WEAKEST ITEM ON THE SCHEDULE — retained by client decision. The higher "
+            "ceiling changes nothing about the two defects, and unlike the medicine item "
+            "no substantiation cures either: (1) a gift is gratuitous by definition, and "
+            "this one is carved out of contracted gross, so the employee was entitled to "
+            "the money regardless; (2) the regulation says gifts given during CHRISTMAS — "
+            "an occasion test that monthly release does not meet. The achievement award "
+            "above is now the stronger home for this money: same cash, explicitly "
+            "permitted, no occasion requirement.",
             unconditional=False,
         ),
     ]

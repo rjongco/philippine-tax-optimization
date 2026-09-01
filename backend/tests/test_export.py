@@ -384,4 +384,4 @@ def test_exported_total_matches_the_workbook_figure(recalculated, result):
 
     total = Decimal(str(ws.cell(row=total_row, column=27).value))
     assert abs(total - result.totals.tax_saved_annual) <= TOLERANCE
-    assert abs(total - Decimal("70465.10")) <= Decimal("0.01")
+    assert abs(total - Decimal("119507.00")) <= Decimal("0.01")
