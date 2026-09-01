@@ -1,0 +1,22 @@
+.git
+.gitignore
+.claude
+docs
+*.xlsx
+
+# Local virtualenv and caches — the image builds its own.
+.venv
+**/.venv
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+
+# Built by the frontend stage, never copied from the host.
+frontend/dist
+
+# Not needed at runtime: the seed scenario comes from defaults.py and the data
+# directory is a volume.
+backend/data
+backend/tests
+backend/pytest.ini

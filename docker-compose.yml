@@ -1,0 +1,32 @@
+# The whole app, one service. The image carries the API and the built frontend.
+#
+#   docker compose up            pulls the published image from GHCR
+#   docker compose up --build    builds from source under the same tag
+#
+# Copy .env.example to .env to pin a tag or move the port.
+
+services:
+  app:
+    image: ghcr.io/rjongco/philippine-tax-optimization:${TAG:-latest}
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      PAYROLL_DATA_DIR: /data
+    volumes:
+      # Holds scenario.json. Remove the volume to reseed from defaults.py.
+      - payroll-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health').read()
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  payroll-data:

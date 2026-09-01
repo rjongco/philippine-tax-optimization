@@ -4,9 +4,13 @@ Local, single-company, no authentication — see the design doc's scope section.
 is open to the Vite dev server only.
 """
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from .routers import compute, scenario
 
@@ -39,14 +43,26 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def index() -> str:
-    """Signpost. This port serves the API; the app itself runs on the Vite server.
+# In the container image the frontend build sits beside the app, so a single
+# process serves both and the client's relative /api calls stay same-origin.
+# Outside the image the directory is absent and the root falls back to the
+# signpost. Mounted after the routers: route matching is in order, so /api and
+# /docs still win.
+_FRONTEND_DIST = Path(
+    os.environ.get("FRONTEND_DIST", Path(__file__).parent.parent / "static")
+)
 
-    Without this, hitting the backend root returns a bare {"detail":"Not Found"},
-    which reads like a broken server rather than the wrong address.
-    """
-    return """<!doctype html>
+if (_FRONTEND_DIST / "index.html").is_file():
+    app.mount("/", StaticFiles(directory=_FRONTEND_DIST, html=True), name="app")
+else:
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    def index() -> str:
+        """Signpost. This port serves the API; the app itself runs on the Vite server.
+
+        Without this, hitting the backend root returns a bare {"detail":"Not Found"},
+        which reads like a broken server rather than the wrong address.
+        """
+        return """<!doctype html>
 <html><head><meta charset="utf-8"><title>Payroll API</title>
 <style>
   body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif;

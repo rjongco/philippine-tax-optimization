@@ -23,6 +23,48 @@ CORS to configure locally.
 
 API docs are at http://localhost:8000/docs.
 
+## Docker
+
+One image carries both halves: the Vite build is baked in beside the API, so a
+single uvicorn process serves the app and `/api` is same-origin. There is no
+nginx and no CORS to configure.
+
+```bash
+docker compose up -d
+```
+
+Then open http://localhost:8000. That pulls
+`ghcr.io/rjongco/philippine-tax-optimization:latest`. To build from source
+instead, under the same tag:
+
+```bash
+docker compose up -d --build
+```
+
+Copy `.env.example` to `.env` to pin a different `TAG` or move the host `PORT`.
+
+The scenario lives on the `payroll-data` volume, mounted at `/data`
+(`PAYROLL_DATA_DIR`). A fresh volume has no `scenario.json`, so the first request
+seeds from `defaults.py` — the same path as deleting the file locally. Removing
+the volume (`docker compose down -v`) resets the app to the seeded workbook
+values.
+
+Outside the image nothing changes: `static/` does not exist next to `app/`, so
+the root keeps serving the signpost page and the two-process dev flow above is
+untouched.
+
+### Publishing to GHCR
+
+```bash
+echo $GITHUB_PAT | docker login ghcr.io -u rjongco --password-stdin
+docker build -t ghcr.io/rjongco/philippine-tax-optimization:latest .
+docker push ghcr.io/rjongco/philippine-tax-optimization:latest
+```
+
+The PAT needs `write:packages`. A newly pushed package is private — make it
+public, or `docker login` before `docker compose up`, on any machine that pulls
+it.
+
 ## Tests
 
 ```bash
